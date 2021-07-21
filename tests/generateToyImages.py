@@ -1,7 +1,5 @@
 import argparse
 import ast
-#import PIL.Image
-#import PIL.ImageDraw
 import os
 import numpy as np
 import cv2
@@ -33,14 +31,6 @@ def main():
         cv2.rectangle(image, (squareCenter[0] - args.squareSize//2, squareCenter[1] - args.squareSize//2),
                      (squareCenter[0] + args.squareSize // 2, squareCenter[1] + args.squareSize // 2),
                      np.random.randint(256), thickness=cv2.FILLED)
-        """rectangleGrayLevel = numpy.random.randint(256)
-        for y in range(int(squareCenter[1] - args.squareSize/2), int(squareCenter[1] + args.squareSize/2)):
-            for x in range(int(squareCenter[0] - args.squareSize / 2), int(squareCenter[0] + args.squareSize / 2)):
-                currentGrayLevel = image.getpixel((x, y))
-                newGrayLevel = (currentGrayLevel + rectangleGrayLevel) %256
-                image.putpixel((x, y), value=newGrayLevel)
-        image.save(imageFilepath)
-        """
         cv2.imwrite(imageFilepath, image)
 
 
