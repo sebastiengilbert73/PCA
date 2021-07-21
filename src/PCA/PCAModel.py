@@ -1,6 +1,5 @@
 import numpy
 import pickle
-import PIL.Image
 
 
 class PCAModel:
@@ -145,8 +144,8 @@ def DotProduct(v1, v2):
     return  sum
 
 def NumpyVectorToImage(dataVector, numberOfRows, numberOfColumns, minValue=None, maxValue=None):
-    if dataVector.size != numberOfRows * numberOfColumns:
-        raise ValueError("NumpyVectorToImage(): dataVector.size ({}) != numberOfRows ({}) * numberOfColumns ({})".format(dataVector.size, numberOfRows ,numberOfColumns))
+    if dataVector.shape != (numberOfRows, numberOfColumns):
+        raise ValueError("NumpyVectorToImage(): dataVector.shape ({}) != (numberOfRows ({}), numberOfColumns ({}))".format(dataVector.shape, numberOfRows ,numberOfColumns))
     if minValue is None:
         minValue = numpy.min(dataVector)
     if maxValue is None:
@@ -154,30 +153,7 @@ def NumpyVectorToImage(dataVector, numberOfRows, numberOfColumns, minValue=None,
     if maxValue == minValue:
         maxValue = maxValue + 1.0
 
-    image = PIL.Image.new('L', (numberOfColumns, numberOfRows) )
+    image = numpy.reshape(dataVector, (numberOfRows, numberOfColumns)) #PIL.Image.new('L', (numberOfColumns, numberOfRows) )
     image.putdata( numpy.rint( 255.0 * (dataVector - minValue)/(maxValue - minValue) ) )
+    image = (255.0 * (image - minValue)/(maxValue - minValue)).astype(numpy.uint8)
     return image
-
-
-
-def main():
-    print ("PCAModel.py main()")
-    X = numpy.array([ [0.14, -2.3, 1.58, 1], [-1.2, 1.62, 0.76, -1], [0.1, -0.2, 0.3, -0.4] ])
-    pcaModel = PCAModel(X)
-    pcaModel.TruncateModel(3)
-    average = pcaModel.Average()
-    eigenpairs = pcaModel.Eigenpairs()
-    varianceProportionList = pcaModel.VarianceProportion()
-
-    print ("average = {}".format(average))
-    print ("eigenpairs = {}".format(eigenpairs))
-    print ("varianceProportionList = {}".format(varianceProportionList))
-
-    projection = pcaModel.Project(X)
-    print ("projection = {}".format(projection))
-
-    reconstruction = pcaModel.Reconstruct(projection)
-    print ("reconstruction = {}".format(reconstruction))
-
-if __name__ == '__main__':
-    main()
