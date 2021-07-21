@@ -29,7 +29,7 @@ def main():
 
     imagePCAModel.Save(os.path.join(args.ImagesDirectory, 'model.pca'))
 
-    #eigenpairs = imagePCAModel.Eigenpairs()
+    eigenpairs = imagePCAModel.Eigenpairs()
 
     eigenImagesForDisplay = imagePCAModel.EigenImagesForDisplay()
     for eigenNdx in range(len(eigenImagesForDisplay)):

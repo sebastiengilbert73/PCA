@@ -163,6 +163,9 @@ class ColorModel:
     def VarianceProportion(self):
         return self.stacked_pca_model.VarianceProportion()
 
+    def Eigenpairs(self):
+        return self.stacked_pca_model.Eigenpairs()
+
 
 def Load(filepath):
     with open(filepath, 'rb') as inputFile:
