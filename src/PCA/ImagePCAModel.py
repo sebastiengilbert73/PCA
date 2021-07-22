@@ -92,20 +92,19 @@ class GrayscaleModel:
         self.PCAModel.TruncateModel(numberOfEigenvectorsToKeep)
 
 
-class ColorModel:
+class MultiChannelModel:
     def __init__(self, imagesList, zeroThreshold=0.000001):
-        # Create monochrome images with three times the height
+        # Create monochrome images with c times the height, where c in the number of channels
         if len(imagesList) == 0:
-            raise ValueError('ImagePCAModel.ColorModel.__init__(): The list of images is empty')
-        self.imageShapeHW = imagesList[0].shape
+            raise ValueError('ImagePCAModel.MultiChannelModel.__init__(): The list of images is empty')
+        self.image_shapeHWC = imagesList[0].shape
+        self.image_sizeHW = (self.image_shapeHWC[0], self.image_shapeHWC[1])
+        self.number_of_channels = self.image_shapeHWC[2]
 
         # Check if all the images have the same size
         for image in imagesList:
-            imageHeight, imageWidth, channels = image.shape
-            if (imageWidth != self.imageShapeHW[1]) or (imageHeight != self.imageShapeHW[0]):
-                raise ValueError("ImagePCAModel.ColorModel.__init__(): The images do not all have the same size: ({}, {}) != ({}, {})".format(imageWidth, imageHeight, self.imageShapeHW[1], self.imageShapeHW[0]))
-            if channels != 3:
-                raise ValueError("ImagePCAModel.ColorModel.__init__(): An image is not color")
+            if image.shape != self.image_shapeHWC:
+                raise ValueError("ImagePCAModel.MultiChannelModel.__init__(): An image has shape {} while we expect {}".format(image.shape, self.image_shapeHWC))
 
         stacked_images_list = []
         for image in imagesList:
@@ -128,36 +127,34 @@ class ColorModel:
             pickle.dump(self, outputFile, pickle.HIGHEST_PROTOCOL)
 
     def Unstack(self, stacked_image):
-        height = self.imageShapeHW[0]
-        unstacked_img = np.zeros(self.imageShapeHW, dtype=np.uint8)
-        unstacked_img[:, :, 0] = stacked_image[0: height, :]
-        unstacked_img[:, :, 1] = stacked_image[height: 2 * height, :]
-        unstacked_img[:, :, 2] = stacked_image[2 * height:, :]
+        height = self.image_sizeHW[0]
+        unstacked_img = np.zeros(self.image_shapeHWC, dtype=np.uint8)
+        for channelNdx in range(self.number_of_channels):
+            starting_y = channelNdx * height
+            unstacked_img[:, :, channelNdx] = stacked_image[starting_y: starting_y + height, :]
         return unstacked_img
 
     def Stack(self, color_image):
-        height = self.imageShapeHW[0]
-        stacked_image = np.zeros((3 * height, self.imageShapeHW[1]), dtype=np.uint8)
-        stacked_image[0: height, :] = color_image[:, :, 0]
-        stacked_image[height: 2 * height, :] = color_image[:, :, 1]
-        stacked_image[2 * height:, :] = color_image[:, :, 2]
+        height = self.image_sizeHW[0]
+
+        stacked_image = np.zeros((self.number_of_channels * height, self.image_sizeHW[1]), dtype=np.uint8)
+        for channelNdx in range(self.number_of_channels):
+            starting_y = channelNdx * height
+            stacked_image[starting_y: starting_y + height, :] = color_image[:, :, channelNdx]
         return stacked_image
 
     def TruncateModel(self, numberOfEigenvectorsToKeep):
         self.stacked_pca_model.TruncateModel(numberOfEigenvectorsToKeep)
 
     def Project(self, image):
-        height, width, channels = image.shape
-        if width != self.imageShapeHW[1] or height != self.imageShapeHW[0]:
-            raise ValueError("ImagePCAModel.ColorModel.Project(): The input image size ({}, {}) doesn't match the model size ({}, {})".format(width, height, self.imageShapeHW[1], self.imageShapeHW[0]))
-        if channels != 3:
-            raise ValueError("ImagePCAModel.ColorModel.Project(): The input image is not color")
+        if image.shape != self.image_shapeHWC:
+            raise ValueError("ImagePCAModel.MultiChannelModel.Project(): The image shape {} doesn't match the model expected shape {}".format(image.shape, self.image_shapeHWC))
         stacked_img = self.Stack(image)
         return self.stacked_pca_model.Project(stacked_img)
 
     def Reconstruct(self, projection):
         dataArr = self.stacked_pca_model.Reconstruct(projection)
-        stacked_reconstruction = np.reshape(dataArr, (3 * self.imageShapeHW[0], self.imageShapeHW[1]))
+        stacked_reconstruction = np.reshape(dataArr, (self.number_of_channels * self.image_sizeHW[0], self.image_sizeHW[1]))
         return self.Unstack(stacked_reconstruction)
 
     def VarianceProportion(self):
