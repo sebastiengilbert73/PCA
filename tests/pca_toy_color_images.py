@@ -6,6 +6,7 @@ import PCA.ImagePCAModel
 
 parser = argparse.ArgumentParser()
 parser.add_argument('ImagesDirectory', help='The directory where the images are')
+parser.add_argument('OutputDirectory', help="The output directory")
 args = parser.parse_args()
 
 logging.basicConfig(
@@ -16,6 +17,10 @@ logging.basicConfig(
 
 def main():
     logging.info("pca_toy_color_images.py main()")
+    # Create the output directory
+    if not os.path.exists(args.OutputDirectory):
+        os.makedirs(args.OutputDirectory)
+
     filepaths = [os.path.join(args.ImagesDirectory, f) for f in os.listdir(args.ImagesDirectory) if
                  os.path.isfile(os.path.join(args.ImagesDirectory, f))
                  and f.upper().startswith('IMAGE')]
@@ -23,17 +28,17 @@ def main():
     imagesList = [cv2.imread(filepath, cv2.IMREAD_COLOR) for filepath in filepaths]
 
     print ("len(imagesList) = {}".format(len(imagesList)))
-    imagePCAModel = PCA.ImagePCAModel.ColorModel(imagesList, zeroThreshold=1e-6)
+    imagePCAModel = PCA.ImagePCAModel.MultiChannelModel(imagesList, zeroThreshold=1e-6)
     averageImg = imagePCAModel.AverageImage()
-    cv2.imwrite(os.path.join(args.ImagesDirectory, 'average.png'), averageImg)
+    cv2.imwrite(os.path.join(args.OutputDirectory, 'average.png'), averageImg)
 
-    imagePCAModel.Save(os.path.join(args.ImagesDirectory, 'model.pca'))
+    imagePCAModel.Save(os.path.join(args.OutputDirectory, 'model.pca'))
 
     eigenpairs = imagePCAModel.Eigenpairs()
 
     eigenImagesForDisplay = imagePCAModel.EigenImagesForDisplay()
     for eigenNdx in range(len(eigenImagesForDisplay)):
-        eigenvectorImgFilepath = os.path.join(args.ImagesDirectory, 'eigenvector' + str(eigenNdx) + '.png')
+        eigenvectorImgFilepath = os.path.join(args.OutputDirectory, 'eigenvector' + str(eigenNdx) + '.png')
         cv2.imwrite(eigenvectorImgFilepath, eigenImagesForDisplay[eigenNdx])
 
     testImage = imagesList[0]
@@ -41,7 +46,7 @@ def main():
     projection = imagePCAModel.Project(testImage)
     print("projection = {}".format(projection))
     reconstruction = imagePCAModel.Reconstruct(projection)
-    cv2.imwrite(os.path.join(args.ImagesDirectory, 'reconstruction.png'), reconstruction)
+    cv2.imwrite(os.path.join(args.OutputDirectory, 'reconstruction.png'), reconstruction)
     varianceProportion = imagePCAModel.VarianceProportion()
     print("varianceProportion = {}".format(varianceProportion))
 
