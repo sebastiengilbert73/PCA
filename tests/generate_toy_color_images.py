@@ -23,6 +23,10 @@ squareCenter = ast.literal_eval(args.squareCenter)
 def main():
     print ("generateToyImages.py main()")
 
+    # Create the output directory
+    if not os.path.exists(args.OutputDirectory):
+        os.makedirs(args.OutputDirectory)
+
     for imageNdx in range(args.numberOfImages):
         imageFilepath = os.path.join(args.OutputDirectory, 'image' + str(imageNdx) + '.png')
         image = np.zeros((imageSize[1], imageSize[0], 3), dtype=np.uint8)
