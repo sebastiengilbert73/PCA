@@ -82,7 +82,9 @@ class PCAModel:
 
 
 
-    def Project(self, X): #, maximumNumberOfDimensions):
+    def Project(self, X):  # X.shape = (N, L)
+        if len(X.shape) == 1:
+            X = np.expand_dims(X, axis=0)
         if X.shape[-1] != self.dataShape[1]:
             raise ValueError("PCAModel.Project(): The shape of X ({}) is not compatible with the model expected shape ({})".format(X.shape[-1], self.dataShape[1]))
         X_averageSubtracted = X - self.AverageAsMatrix(X.shape[0])
