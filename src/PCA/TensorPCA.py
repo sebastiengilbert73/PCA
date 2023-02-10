@@ -46,3 +46,11 @@ class Model:
             eigen_tsr = torch.tensor(self.Reshape(eigenvector))
             eigenpairs_list.append((eigenvalue, eigen_tsr))
         return eigenpairs_list
+
+    def Project(self, input_tsr):  # input_tsr.shape = (C, H, W)
+        if input_tsr.shape != self.shape:
+            raise ValueError(f"TensorPCA.Model.Project(): input_tsr.shape ({input_tsr.shape}) != self.shape ({self.shape})")
+        input_vct = input_tsr.reshape(-1)
+        #print(f"TensorPCA.Project(): input_vct.shape = {input_vct.shape}")
+        projection = self.pca_model.Project(input_vct.unsqueeze(0))
+        return projection
