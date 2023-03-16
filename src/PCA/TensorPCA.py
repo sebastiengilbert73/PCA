@@ -54,3 +54,19 @@ class Model:
         #print(f"TensorPCA.Project(): input_vct.shape = {input_vct.shape}")
         projection = self.pca_model.Project(input_vct.unsqueeze(0))
         return projection
+
+    def Reconstruct(self, projection):  # projection.shape = (N, len(self.pca_model.eigenpairs))
+        if projection.shape[-1] != len(self.pca_model.eigenpairs):
+            raise ValueError(f"TensorPCA.Reconstruct(): projection.shape[-1] ({projection.shape[-1]}) != len(self.pca_model.eigenpairs) ({len(self.pca_model.eigenpairs)}")
+        if len(projection.shape) != 2:
+            raise ValueError(f"TensorPCA.Reconstruct(): len(projection.shape) ({len(projection.shape)}) != 2. We expect a shape of (N, L) where N is the minibatch dimension")
+        #print(f"type(projection) = {type(projection)}")
+        #print(f"projection = \n{projection}")
+        if type(projection) is torch.Tensor:
+            projection = projection.numpy()
+        reconstructed_vct = self.pca_model.Reconstruct(projection)
+        #print(f"reconstructed_vct.shape = {reconstructed_vct.shape}")
+        #print(f"type(reconstructed_vct) = {type(reconstructed_vct)}")
+        #print(f"self.shape = {self.shape}")
+        reconstruction_tsr = torch.from_numpy(reconstructed_vct).view(self.shape)
+        return reconstruction_tsr
