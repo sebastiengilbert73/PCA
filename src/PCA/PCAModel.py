@@ -1,6 +1,6 @@
 import numpy
 import pickle
-
+import numpy as np
 
 class PCAModel:
     def __init__(self, dataArr, zeroThreshold=0.000001):
